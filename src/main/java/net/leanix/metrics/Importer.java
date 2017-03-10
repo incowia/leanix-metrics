@@ -11,7 +11,6 @@ import net.leanix.api.models.BusinessCapability;
 
 /**
  * import of leanIX to metrics
- *
  */
 public class Importer 
 {
