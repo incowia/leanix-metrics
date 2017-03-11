@@ -1,36 +1,23 @@
 package net.leanix.metrics.dashboard.dataquality;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import static org.junit.Assert.*;
 
-// TODO JUnit4 Impl verwenden!
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-/**
- * Unit test for simple App.
- */
-public class ImportJobTest extends TestCase {
-	/**
-	 * Create the test case
-	 *
-	 * @param testName
-	 *            name of the test case
-	 */
-	public ImportJobTest(String testName) {
-		super(testName);
+public class ImportJobTest {
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
 	}
 
-	/**
-	 * @return the suite of tests being tested
-	 */
-	public static Test suite() {
-		return new TestSuite(ImportJobTest.class);
+	@Before
+	public void setUp() throws Exception {
 	}
 
-	/**
-	 * Rigourous Test :-)
-	 */
-	public void testApp() {
+	@Test
+	public void test() {
 		assertTrue(true);
 	}
 }
