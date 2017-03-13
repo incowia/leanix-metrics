@@ -29,6 +29,8 @@ public final class ImportJob {
 		for (BusinessCapability businessCapability : businessCapabilities) {
 			if (debug) {
 				System.out.println(businessCapability.toString());
+				System.out.println("Applications:");
+				System.out.println(businessCapability.getServiceHasBusinessCapabilities());
 			}
 		}
 	}
