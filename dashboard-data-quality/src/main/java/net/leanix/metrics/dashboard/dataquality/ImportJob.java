@@ -119,11 +119,12 @@ public final class ImportJob {
 	 */
 	private void saveMeasurement(List<DataQuality> measurementList) throws net.leanix.dropkit.apiclient.ApiException {
 		PointsApi pointsApi = new PointsApi(metricsClient);
+		Date current = new Date();
 		for (DataQuality dataQuality : measurementList) {
 			Point point = new Point();
 			point.setMeasurement("dashboard-data-quality");
 			point.setWorkspaceId(workspaceId);
-			point.setTime(new Date());
+			point.setTime(current);
 
 			Field field = new Field();
 			field.setK("not complete");
