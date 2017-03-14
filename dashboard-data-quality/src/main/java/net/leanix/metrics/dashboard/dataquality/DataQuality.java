@@ -7,8 +7,8 @@ public class DataQuality {
 	
 	private String businessCapabilityID = null;
 	private String displayName = null;
-	private String incompleteApps = null;
-	private String complete = null;
+	private int incompleteApps;
+	private int completeApps;
 
 	public String getBusinessCapabilityID() {
 		return businessCapabilityID;
@@ -26,19 +26,19 @@ public class DataQuality {
 		this.displayName = displayName;
 	}
 
-	public String getIncompleteApps() {
+	public double getIncompleteApps() {
 		return incompleteApps;
 	}
 	
-	public void setIncompleteApps(String incompleteApps) {
+	public void setIncompleteApps(int incompleteApps) {
 		this.incompleteApps = incompleteApps;
 	}
 	
-	public String getComplete() {
-		return complete;
+	public double getCompleteApps() {
+		return completeApps;
 	}
 	
-	public void setComplete(String complete) {
-		this.complete = complete;
+	public void setCompleteApps(int completeApps) {
+		this.completeApps = completeApps;
 	}
 }
