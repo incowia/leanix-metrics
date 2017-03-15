@@ -67,6 +67,7 @@ public final class ImportJob {
 			dataQuality.setDisplayName(bc.getDisplayName());
 			// read services of business capabilities
 			List<Service> services = getServicesFromBC(bc, allBCsAsMap, allServicesAsMap);
+			dataQuality.setTotalApps(services.size());
 			services.forEach((s) -> {
 				String completion = s.getCompletion();
 				double parseCompletion = 1.0d;
@@ -81,6 +82,8 @@ public final class ImportJob {
 					dataQuality.incrementCompleteApps();
 				}
 			});
+			//compute percent
+			computePercent(dataQuality);
 			dataQualityList.add(dataQuality);
 		});
 		return dataQualityList;
@@ -110,9 +113,23 @@ public final class ImportJob {
 		}
 		return result;
 	}
+	
+	private void computePercent(DataQuality dataQuality) {
+		float percentage;
+		int total = dataQuality.getTotalApps();
+		if(dataQuality.getIncompleteApps() > 0) {
+			percentage = (float)((dataQuality.getIncompleteApps())*100/total);
+			dataQuality.setIncompleteAppsPercent(Math.round(percentage));
+		}
+		if(dataQuality.getCompleteApps() > 0) {
+			percentage = (float)((dataQuality.getCompleteApps())*100/total);
+			dataQuality.setCompleteAppsPercent(Math.round(percentage));
+		}
+		
+	}
 
 	/**
-	 * save the measuremnt
+	 * save the measurement
 	 * 
 	 * @param measurementList
 	 * @throws net.leanix.dropkit.apiclient.ApiException
@@ -133,9 +150,19 @@ public final class ImportJob {
 			Field field2 = new Field();
 			field2.setK("complete");
 			field2.setV(Double.valueOf(dataQuality.getCompleteApps()));
+			
+			Field field3 = new Field();
+			field3.setK("complete in percent");
+			field3.setV(Double.valueOf(dataQuality.getCompleteAppsPercent()));
+			
+			Field field4 = new Field();
+			field4.setK("not complete in percent");
+			field4.setV(Double.valueOf(dataQuality.getIncompleteAppsPercent()));
 
 			point.getFields().add(field);
 			point.getFields().add(field2);
+			point.getFields().add(field3);
+			point.getFields().add(field4);
 
 			Tag tag = new Tag();
 			tag.setK("factsheetId");
