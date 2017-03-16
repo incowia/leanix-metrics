@@ -1,4 +1,7 @@
-package net.leanix.metrics.dashboard.dataquality;
+/**
+ * 
+ */
+package net.leanix.metrics.dashboard.applicationdeployment;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,12 +23,17 @@ import net.leanix.metrics.api.models.Field;
 import net.leanix.metrics.api.models.Point;
 import net.leanix.metrics.api.models.Tag;
 
-public final class ImportJob {
-
+/**
+ * @author jsmr
+ *
+ */
+public class ImportJob {
+	
 	private final net.leanix.api.common.ApiClient apiClient;
 	private final net.leanix.dropkit.apiclient.ApiClient metricsClient;
 	private final String workspaceId; // for metrics api's
 	private final boolean debug;
+	private List<String> tagsOfService;
 
 	public ImportJob(net.leanix.api.common.ApiClient apiClient, net.leanix.dropkit.apiclient.ApiClient metricsClient,
 			String workspaceId, boolean debug) throws NullPointerException {
@@ -36,7 +44,7 @@ public final class ImportJob {
 	}
 
 	public void run() throws Exception {
-		List<DataQuality> measurementList = getDataQualityList();
+		List<AppDeployment> measurementList = getAppDeploymentList();
 		if (debug) {
 			measurementList.forEach(System.out::println);
 		}
@@ -49,10 +57,10 @@ public final class ImportJob {
 	 * @return
 	 * @throws ApiException
 	 */
-	private List<DataQuality> getDataQualityList() throws ApiException {
+	private List<AppDeployment> getAppDeploymentList() throws ApiException {
 		BusinessCapabilitiesApi bcApi = new BusinessCapabilitiesApi(apiClient);
 		ServicesApi servicesApi = new ServicesApi(apiClient);
-		List<DataQuality> dataQualityList = new ArrayList<>();
+		List<AppDeployment> appDeployList = new ArrayList<>();
 		// read services
 		List<Service> allServices = servicesApi.getServices(false, null);
 		Map<String, Service> allServicesAsMap = allServices.stream()
@@ -62,31 +70,35 @@ public final class ImportJob {
 		Map<String, BusinessCapability> allBCsAsMap = allBCs.stream()
 				.collect(Collectors.toMap(BusinessCapability::getID, Function.identity()));
 		allBCs.forEach((bc) -> {
-			DataQuality dataQuality = new DataQuality();
-			dataQuality.setBusinessCapabilityID(bc.getID());
-			dataQuality.setDisplayName(bc.getDisplayName());
+			AppDeployment appDeploy = new AppDeployment();
+			appDeploy.setBusinessCapabilityID(bc.getID());
+			appDeploy.setDisplayName(bc.getDisplayName());
 			// read services of business capabilities
 			List<Service> services = getServicesFromBC(bc, allBCsAsMap, allServicesAsMap);
-			dataQuality.setTotalApps(services.size());
-			services.forEach((s) -> {
-				String completion = s.getCompletion();
-				double parseCompletion = 1.0d;
-				try {
-					parseCompletion = Double.parseDouble(completion);
-				} catch (Exception e) {
-					// ignore
+			appDeploy.setTotalApps(services.size());
+			countTags(appDeploy, services);
+			appDeployList.add(appDeploy);
+		});
+		return appDeployList;
+	}
+
+	/**
+	 * count the tags 'global' and 'local' 
+	 * @param appDeploy hold the data
+	 * @param services list of services (applications)
+	 */
+	private void countTags(AppDeployment appDeploy, List<Service> services) {
+		services.forEach((s) -> {
+			tagsOfService = s.getTags();
+			tagsOfService.forEach((tag) -> {
+				if(tag.equals("global")) {
+					appDeploy.incrementGlobalTags();
 				}
-				if (parseCompletion < 1.0d) {
-					dataQuality.incrementIncompleteApps();
-				} else {
-					dataQuality.incrementCompleteApps();
+				if(tag.equals("local")) {
+					appDeploy.incrementLocalTags();
 				}
 			});
-			//compute percent
-			computePercent(dataQuality);
-			dataQualityList.add(dataQuality);
 		});
-		return dataQualityList;
 	}
 
 	private List<Service> getServicesFromBC(BusinessCapability bc, Map<String, BusinessCapability> allBCs,
@@ -113,20 +125,6 @@ public final class ImportJob {
 		}
 		return result;
 	}
-	
-	private void computePercent(DataQuality dataQuality) {
-		double percentage;
-		double total = dataQuality.getTotalApps();
-		if(dataQuality.getIncompleteApps() > 0) {
-			percentage = (float)((dataQuality.getIncompleteApps())*100/total);
-			dataQuality.setIncompleteAppsPercent((int) Math.round(percentage));
-		}
-		if(dataQuality.getCompleteApps() > 0) {
-			percentage = (float)((dataQuality.getCompleteApps())*100/total);
-			dataQuality.setCompleteAppsPercent((int) Math.round(percentage));
-		}
-		
-	}
 
 	/**
 	 * save the measurement
@@ -134,43 +132,34 @@ public final class ImportJob {
 	 * @param measurementList
 	 * @throws net.leanix.dropkit.apiclient.ApiException
 	 */
-	private void saveMeasurement(List<DataQuality> measurementList) throws net.leanix.dropkit.apiclient.ApiException {
+	private void saveMeasurement(List<AppDeployment> measurementList) throws net.leanix.dropkit.apiclient.ApiException {
 		PointsApi pointsApi = new PointsApi(metricsClient);
 		Date current = new Date();
-		for (DataQuality dataQuality : measurementList) {
+		for (AppDeployment appData : measurementList) {
 			Point point = new Point();
-			point.setMeasurement("dashboard-data-quality");
+			point.setMeasurement("dashboard-application-deployment");
 			point.setWorkspaceId(workspaceId);
 			point.setTime(current);
 
 			Field field = new Field();
-			field.setK("not complete");
-			field.setV(Double.valueOf(dataQuality.getIncompleteApps()));
+			field.setK("local");
+			field.setV(Double.valueOf(appData.getGlobalApps()));
 
 			Field field2 = new Field();
-			field2.setK("complete");
-			field2.setV(Double.valueOf(dataQuality.getCompleteApps()));
+			field2.setK("global");
+			field2.setV(Double.valueOf(appData.getLocalApps()));
 			
-			Field field3 = new Field();
-			field3.setK("complete in percent");
-			field3.setV(Double.valueOf(dataQuality.getCompleteAppsPercent()));
-			
-			Field field4 = new Field();
-			field4.setK("not complete in percent");
-			field4.setV(Double.valueOf(dataQuality.getIncompleteAppsPercent()));
-
 			point.getFields().add(field);
 			point.getFields().add(field2);
-			point.getFields().add(field3);
-			point.getFields().add(field4);
 
 			Tag tag = new Tag();
 			tag.setK("factsheetId");
-			tag.setV(dataQuality.getBusinessCapabilityID());
+			tag.setV(appData.getBusinessCapabilityID());
 
 			point.getTags().add(tag);
 
 			pointsApi.createPoint(point);
 		}
 	}
+
 }

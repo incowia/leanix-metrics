@@ -17,15 +17,6 @@ public final class Main {
 				.desc("The host, e.g. app.leanix.net (required).").build());
 		options.addOption(Option.builder("w").longOpt("workspace").required().hasArg()
 				.desc("The leanIX workspace (required).").build());
-		/*
-		 * TODO workspace id can be retrieved in different ways
-		 * 
-		 * - query leanix-mtm-sdk-java -> ApiTokensApi.getApiTokens(...)
-		 * 
-		 * - query undocumented rest api '/config' call
-		 * 
-		 * - as cli option (check if workspace and id belong to each other?)
-		 */
 		options.addOption(Option.builder("wid").longOpt("workspaceid").required().hasArg()
 				.desc("The leanIX workspace id for metrics (required).").build());
 		options.addOption(
