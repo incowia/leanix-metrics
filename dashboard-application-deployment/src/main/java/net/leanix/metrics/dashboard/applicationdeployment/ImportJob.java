@@ -36,14 +36,14 @@ public final class ImportJob {
 	}
 
 	public void run() throws Exception {
-		List<AppDeployment> measurements = getMeasurements();
+		List<AppDeployment> measurement = getMeasurement();
 		if (debug) {
-			measurements.forEach(System.out::println);
+			measurement.forEach(System.out::println);
 		}
-		saveMeasurement(measurements);
+		saveMeasurement(measurement);
 	}
 
-	private List<AppDeployment> getMeasurements() throws ApiException {
+	private List<AppDeployment> getMeasurement() throws ApiException {
 		BusinessCapabilitiesApi bcApi = new BusinessCapabilitiesApi(apiClient);
 		ServicesApi servicesApi = new ServicesApi(apiClient);
 		List<AppDeployment> appDeployList = new ArrayList<>();
@@ -67,10 +67,10 @@ public final class ImportJob {
 					return;
 				}
 				tags.forEach((tag) -> {
-					if (tag.equals("global")) {
+					if (tag.equals("Global")) {
 						appDeploy.incrementGlobal();
 					}
-					if (tag.equals("local")) {
+					if (tag.equals("Local")) {
 						appDeploy.incrementLocal();
 					}
 				});

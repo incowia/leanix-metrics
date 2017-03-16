@@ -36,14 +36,14 @@ public final class ImportJob {
 	}
 
 	public void run() throws Exception {
-		List<DataQuality> measurements = getMeasurements();
+		List<DataQuality> measurement = getMeasurement();
 		if (debug) {
-			measurements.forEach(System.out::println);
+			measurement.forEach(System.out::println);
 		}
-		saveMeasurement(measurements);
+		saveMeasurement(measurement);
 	}
 
-	private List<DataQuality> getMeasurements() throws ApiException {
+	private List<DataQuality> getMeasurement() throws ApiException {
 		BusinessCapabilitiesApi bcApi = new BusinessCapabilitiesApi(apiClient);
 		ServicesApi servicesApi = new ServicesApi(apiClient);
 		List<DataQuality> dataQualityList = new ArrayList<>();
