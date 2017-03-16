@@ -24,6 +24,12 @@
 			<artifactId>leanix-metrics-sdk-java</artifactId>
 			<version>0.3.1</version>
 		</dependency>
+		<!-- for excel imort -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.15</version>
+		</dependency>
 		<!-- test libs -->
 		<dependency>
 			<groupId>junit</groupId>
