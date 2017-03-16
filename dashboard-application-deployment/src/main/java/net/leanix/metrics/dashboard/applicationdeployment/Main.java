@@ -8,8 +8,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-public class Main {
-	
+public final class Main {
+
 	public static final void main(String[] args) {
 		// define cli's
 		Options options = new Options();

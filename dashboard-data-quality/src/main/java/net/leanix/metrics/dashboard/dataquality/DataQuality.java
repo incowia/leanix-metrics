@@ -1,24 +1,18 @@
 package net.leanix.metrics.dashboard.dataquality;
 
-/**
- * Dataset for save as measurement
- */
-public class DataQuality {
+public final class DataQuality {
 
-	private String businessCapabilityID = null;
-	private String displayName = null;
-	private int totalApps;
-	private int incompleteApps;
-	private int completeApps;
-	private int incompleteAppsPercent = 0;;
-	private int completeAppsPercent = 0;
+	private String factsheetId;
+	private String displayName;
+	private int complete;
+	private int incomplete;
 
-	public String getBusinessCapabilityID() {
-		return businessCapabilityID;
+	public String getFactsheetId() {
+		return factsheetId;
 	}
 
-	public void setBusinessCapabilityID(String businessCapabilityID) {
-		this.businessCapabilityID = businessCapabilityID;
+	public void setFactsheetId(String factsheetId) {
+		this.factsheetId = factsheetId;
 	}
 
 	public String getDisplayName() {
@@ -29,57 +23,41 @@ public class DataQuality {
 		this.displayName = displayName;
 	}
 
-	public int getTotalApps() {
-		return totalApps;
+	public int getComplete() {
+		return complete;
 	}
 
-	public void setTotalApps(int totalApps) {
-		this.totalApps = totalApps;
+	public void incrementComplete() {
+		complete++;
 	}
 
-	public int getIncompleteApps() {
-		return incompleteApps;
+	public int getIncomplete() {
+		return incomplete;
 	}
 
-	public void setIncompleteApps(int incompleteApps) {
-		this.incompleteApps = incompleteApps;
-	}
-	
-	public void incrementIncompleteApps() {
-		incompleteApps++;
+	public void incrementIncomplete() {
+		incomplete++;
 	}
 
-	public int getCompleteApps() {
-		return completeApps;
+	public int getCompleteInPercent() {
+		double total = complete + incomplete;
+		if (complete == 0) {
+			return 0;
+		}
+		return (int) Math.round(((double) complete) * 100.0d / total);
 	}
 
-	public void setCompleteApps(int completeApps) {
-		this.completeApps = completeApps;
-	}
-	
-	public void incrementCompleteApps() {
-		completeApps++;
-	}
-
-	public int getCompleteAppsPercent() {
-		return completeAppsPercent;
-	}
-
-	public void setCompleteAppsPercent(int completeAppsPercent) {
-		this.completeAppsPercent = completeAppsPercent;
-	}
-
-	public int getIncompleteAppsPercent() {
-		return incompleteAppsPercent;
-	}
-
-	public void setIncompleteAppsPercent(int incompleteAppsPercent) {
-		this.incompleteAppsPercent = incompleteAppsPercent;
+	public int getIncompleteInPercent() {
+		return 100 - getCompleteInPercent();
 	}
 
 	@Override
 	public String toString() {
-		return "[businessCapabilityID=" + businessCapabilityID + ",displayName=" + displayName + ",incompleteApps="
-				+ incompleteApps + ",completeApps=" + completeApps + ",incompleteApps%=" + incompleteAppsPercent + ",completeApps%=" + completeAppsPercent +"]";
+		StringBuilder sb = new StringBuilder('[');
+		sb.append("factsheetId=").append(factsheetId).append(',');
+		sb.append("displayName=").append(displayName).append(',');
+		sb.append("complete=").append(complete).append(',');
+		sb.append("incomplete=").append(incomplete);
+		return sb.append(']').toString();
 	}
 }

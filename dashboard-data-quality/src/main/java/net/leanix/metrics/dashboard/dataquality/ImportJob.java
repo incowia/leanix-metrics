@@ -36,24 +36,18 @@ public final class ImportJob {
 	}
 
 	public void run() throws Exception {
-		List<DataQuality> measurementList = getDataQualityList();
+		List<DataQuality> measurements = getMeasurements();
 		if (debug) {
-			measurementList.forEach(System.out::println);
+			measurements.forEach(System.out::println);
 		}
-		saveMeasurement(measurementList);
+		saveMeasurement(measurements);
 	}
 
-	/**
-	 * Read business capabilities
-	 * 
-	 * @return
-	 * @throws ApiException
-	 */
-	private List<DataQuality> getDataQualityList() throws ApiException {
+	private List<DataQuality> getMeasurements() throws ApiException {
 		BusinessCapabilitiesApi bcApi = new BusinessCapabilitiesApi(apiClient);
 		ServicesApi servicesApi = new ServicesApi(apiClient);
 		List<DataQuality> dataQualityList = new ArrayList<>();
-		// read services
+		// read all services
 		List<Service> allServices = servicesApi.getServices(false, null);
 		Map<String, Service> allServicesAsMap = allServices.stream()
 				.collect(Collectors.toMap(Service::getID, Function.identity()));
@@ -63,11 +57,10 @@ public final class ImportJob {
 				.collect(Collectors.toMap(BusinessCapability::getID, Function.identity()));
 		allBCs.forEach((bc) -> {
 			DataQuality dataQuality = new DataQuality();
-			dataQuality.setBusinessCapabilityID(bc.getID());
+			dataQuality.setFactsheetId(bc.getID());
 			dataQuality.setDisplayName(bc.getDisplayName());
-			// read services of business capabilities
+			// get services of business capabilities
 			List<Service> services = getServicesFromBC(bc, allBCsAsMap, allServicesAsMap);
-			dataQuality.setTotalApps(services.size());
 			services.forEach((s) -> {
 				String completion = s.getCompletion();
 				double parseCompletion = 1.0d;
@@ -77,13 +70,11 @@ public final class ImportJob {
 					// ignore
 				}
 				if (parseCompletion < 1.0d) {
-					dataQuality.incrementIncompleteApps();
+					dataQuality.incrementIncomplete();
 				} else {
-					dataQuality.incrementCompleteApps();
+					dataQuality.incrementComplete();
 				}
 			});
-			//compute percent
-			computePercent(dataQuality);
 			dataQualityList.add(dataQuality);
 		});
 		return dataQualityList;
@@ -113,27 +104,7 @@ public final class ImportJob {
 		}
 		return result;
 	}
-	
-	private void computePercent(DataQuality dataQuality) {
-		double percentage;
-		double total = dataQuality.getTotalApps();
-		if(dataQuality.getIncompleteApps() > 0) {
-			percentage = (float)((dataQuality.getIncompleteApps())*100/total);
-			dataQuality.setIncompleteAppsPercent((int) Math.round(percentage));
-		}
-		if(dataQuality.getCompleteApps() > 0) {
-			percentage = (float)((dataQuality.getCompleteApps())*100/total);
-			dataQuality.setCompleteAppsPercent((int) Math.round(percentage));
-		}
-		
-	}
 
-	/**
-	 * save the measurement
-	 * 
-	 * @param measurementList
-	 * @throws net.leanix.dropkit.apiclient.ApiException
-	 */
 	private void saveMeasurement(List<DataQuality> measurementList) throws net.leanix.dropkit.apiclient.ApiException {
 		PointsApi pointsApi = new PointsApi(metricsClient);
 		Date current = new Date();
@@ -144,20 +115,20 @@ public final class ImportJob {
 			point.setTime(current);
 
 			Field field = new Field();
-			field.setK("not complete");
-			field.setV(Double.valueOf(dataQuality.getIncompleteApps()));
+			field.setK("complete");
+			field.setV(Double.valueOf(dataQuality.getComplete()));
 
 			Field field2 = new Field();
-			field2.setK("complete");
-			field2.setV(Double.valueOf(dataQuality.getCompleteApps()));
-			
+			field2.setK("not complete");
+			field2.setV(Double.valueOf(dataQuality.getIncomplete()));
+
 			Field field3 = new Field();
-			field3.setK("complete in percent");
-			field3.setV(Double.valueOf(dataQuality.getCompleteAppsPercent()));
-			
+			field3.setK("complete in %");
+			field3.setV(Double.valueOf(dataQuality.getCompleteInPercent()));
+
 			Field field4 = new Field();
-			field4.setK("not complete in percent");
-			field4.setV(Double.valueOf(dataQuality.getIncompleteAppsPercent()));
+			field4.setK("not complete in %");
+			field4.setV(Double.valueOf(dataQuality.getIncompleteInPercent()));
 
 			point.getFields().add(field);
 			point.getFields().add(field2);
@@ -166,7 +137,7 @@ public final class ImportJob {
 
 			Tag tag = new Tag();
 			tag.setK("factsheetId");
-			tag.setV(dataQuality.getBusinessCapabilityID());
+			tag.setV(dataQuality.getFactsheetId());
 
 			point.getTags().add(tag);
 

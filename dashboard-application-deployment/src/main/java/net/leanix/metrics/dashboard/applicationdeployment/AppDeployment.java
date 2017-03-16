@@ -1,19 +1,18 @@
 package net.leanix.metrics.dashboard.applicationdeployment;
 
-public class AppDeployment {
-	
-	private String businessCapabilityID = null;
-	private String displayName = null;
-	private int totalApps;
-	private int globalApps = 0;
-	private int localApps = 0;
+public final class AppDeployment {
 
-	public String getBusinessCapabilityID() {
-		return businessCapabilityID;
+	private String factsheetId;
+	private String displayName;
+	private int global;
+	private int local;
+
+	public String getFactsheetId() {
+		return factsheetId;
 	}
 
-	public void setBusinessCapabilityID(String businessCapabilityID) {
-		this.businessCapabilityID = businessCapabilityID;
+	public void setFactsheetId(String factsheetId) {
+		this.factsheetId = factsheetId;
 	}
 
 	public String getDisplayName() {
@@ -24,41 +23,29 @@ public class AppDeployment {
 		this.displayName = displayName;
 	}
 
-	public int getTotalApps() {
-		return totalApps;
+	public int getGlobal() {
+		return global;
 	}
 
-	public void setTotalApps(int totalApps) {
-		this.totalApps = totalApps;
+	public void incrementGlobal() {
+		global++;
 	}
 
-	public int getGlobalApps() {
-		return globalApps;
+	public int getLocal() {
+		return local;
 	}
 
-	public void setGlobalApps(int globalApps) {
-		this.globalApps = globalApps;
-	}
-	
-	public void incrementGlobalTags() {
-		globalApps++;
-	}
-
-	public int getLocalApps() {
-		return localApps;
-	}
-
-	public void setLocalApps(int localApps) {
-		this.localApps = localApps;
-	}
-	
-	public void incrementLocalTags() {
-		localApps++;
+	public void incrementLocal() {
+		local++;
 	}
 
 	@Override
 	public String toString() {
-		return "[businessCapabilityID=" + businessCapabilityID + ",displayName=" + displayName + ",globalApps="
-				+ globalApps + ",localApps=" + localApps + "]";
+		StringBuilder sb = new StringBuilder('[');
+		sb.append("factsheetId=").append(factsheetId).append(',');
+		sb.append("displayName=").append(displayName).append(',');
+		sb.append("global=").append(global).append(',');
+		sb.append("local=").append(local);
+		return sb.append(']').toString();
 	}
 }

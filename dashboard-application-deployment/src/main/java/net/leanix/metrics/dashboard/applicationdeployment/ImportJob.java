@@ -1,6 +1,3 @@
-/**
- * 
- */
 package net.leanix.metrics.dashboard.applicationdeployment;
 
 import java.util.ArrayList;
@@ -23,17 +20,12 @@ import net.leanix.metrics.api.models.Field;
 import net.leanix.metrics.api.models.Point;
 import net.leanix.metrics.api.models.Tag;
 
-/**
- * @author jsmr
- *
- */
-public class ImportJob {
-	
+public final class ImportJob {
+
 	private final net.leanix.api.common.ApiClient apiClient;
 	private final net.leanix.dropkit.apiclient.ApiClient metricsClient;
 	private final String workspaceId; // for metrics api's
 	private final boolean debug;
-	private List<String> tagsOfService;
 
 	public ImportJob(net.leanix.api.common.ApiClient apiClient, net.leanix.dropkit.apiclient.ApiClient metricsClient,
 			String workspaceId, boolean debug) throws NullPointerException {
@@ -44,24 +36,18 @@ public class ImportJob {
 	}
 
 	public void run() throws Exception {
-		List<AppDeployment> measurementList = getAppDeploymentList();
+		List<AppDeployment> measurements = getMeasurements();
 		if (debug) {
-			measurementList.forEach(System.out::println);
+			measurements.forEach(System.out::println);
 		}
-		saveMeasurement(measurementList);
+		saveMeasurement(measurements);
 	}
 
-	/**
-	 * Read business capabilities
-	 * 
-	 * @return
-	 * @throws ApiException
-	 */
-	private List<AppDeployment> getAppDeploymentList() throws ApiException {
+	private List<AppDeployment> getMeasurements() throws ApiException {
 		BusinessCapabilitiesApi bcApi = new BusinessCapabilitiesApi(apiClient);
 		ServicesApi servicesApi = new ServicesApi(apiClient);
 		List<AppDeployment> appDeployList = new ArrayList<>();
-		// read services
+		// read all services
 		List<Service> allServices = servicesApi.getServices(false, null);
 		Map<String, Service> allServicesAsMap = allServices.stream()
 				.collect(Collectors.toMap(Service::getID, Function.identity()));
@@ -71,34 +57,27 @@ public class ImportJob {
 				.collect(Collectors.toMap(BusinessCapability::getID, Function.identity()));
 		allBCs.forEach((bc) -> {
 			AppDeployment appDeploy = new AppDeployment();
-			appDeploy.setBusinessCapabilityID(bc.getID());
+			appDeploy.setFactsheetId(bc.getID());
 			appDeploy.setDisplayName(bc.getDisplayName());
-			// read services of business capabilities
+			// get services of business capabilities
 			List<Service> services = getServicesFromBC(bc, allBCsAsMap, allServicesAsMap);
-			appDeploy.setTotalApps(services.size());
-			countTags(appDeploy, services);
+			services.forEach((s) -> {
+				List<String> tags = s.getTags();
+				if (tags == null) {
+					return;
+				}
+				tags.forEach((tag) -> {
+					if (tag.equals("global")) {
+						appDeploy.incrementGlobal();
+					}
+					if (tag.equals("local")) {
+						appDeploy.incrementLocal();
+					}
+				});
+			});
 			appDeployList.add(appDeploy);
 		});
 		return appDeployList;
-	}
-
-	/**
-	 * count the tags 'global' and 'local' 
-	 * @param appDeploy hold the data
-	 * @param services list of services (applications)
-	 */
-	private void countTags(AppDeployment appDeploy, List<Service> services) {
-		services.forEach((s) -> {
-			tagsOfService = s.getTags();
-			tagsOfService.forEach((tag) -> {
-				if(tag.equals("global")) {
-					appDeploy.incrementGlobalTags();
-				}
-				if(tag.equals("local")) {
-					appDeploy.incrementLocalTags();
-				}
-			});
-		});
 	}
 
 	private List<Service> getServicesFromBC(BusinessCapability bc, Map<String, BusinessCapability> allBCs,
@@ -126,12 +105,6 @@ public class ImportJob {
 		return result;
 	}
 
-	/**
-	 * save the measurement
-	 * 
-	 * @param measurementList
-	 * @throws net.leanix.dropkit.apiclient.ApiException
-	 */
 	private void saveMeasurement(List<AppDeployment> measurementList) throws net.leanix.dropkit.apiclient.ApiException {
 		PointsApi pointsApi = new PointsApi(metricsClient);
 		Date current = new Date();
@@ -142,19 +115,19 @@ public class ImportJob {
 			point.setTime(current);
 
 			Field field = new Field();
-			field.setK("local");
-			field.setV(Double.valueOf(appData.getGlobalApps()));
+			field.setK("global");
+			field.setV(Double.valueOf(appData.getGlobal()));
 
 			Field field2 = new Field();
-			field2.setK("global");
-			field2.setV(Double.valueOf(appData.getLocalApps()));
-			
+			field2.setK("local");
+			field2.setV(Double.valueOf(appData.getLocal()));
+
 			point.getFields().add(field);
 			point.getFields().add(field2);
 
 			Tag tag = new Tag();
 			tag.setK("factsheetId");
-			tag.setV(appData.getBusinessCapabilityID());
+			tag.setV(appData.getFactsheetId());
 
 			point.getTags().add(tag);
 
