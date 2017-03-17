@@ -71,6 +71,7 @@ public final class ImportJob {
 				}
 				if (parseCompletion < 1.0d) {
 					dataQuality.incrementIncomplete();
+					determineAverage(dataQuality,parseCompletion);
 				} else {
 					dataQuality.incrementComplete();
 				}
@@ -104,6 +105,17 @@ public final class ImportJob {
 		}
 		return result;
 	}
+	
+	/**
+	 * determine average of incomplete services
+	 * @param dataQuality
+	 * @param parseCompletion
+	 */
+	private void determineAverage(DataQuality dataQuality, double parseCompletion) {
+		double sumPercentService;
+		sumPercentService = parseCompletion*100;
+		dataQuality.setSumPercentIncomplete(sumPercentService);
+	}
 
 	private void saveMeasurement(List<DataQuality> measurementList) throws net.leanix.dropkit.apiclient.ApiException {
 		PointsApi pointsApi = new PointsApi(metricsClient);
@@ -129,11 +141,21 @@ public final class ImportJob {
 			Field field4 = new Field();
 			field4.setK("not complete in %");
 			field4.setV(Double.valueOf(dataQuality.getIncompleteInPercent()));
+			
+			Field field5 = new Field();
+			field5.setK("not complete avg in %");
+			field5.setV(Double.valueOf(dataQuality.getAvgPercentIncomplete()));
+			
+			Field field6 = new Field();
+			field6.setK("complete avg in %");
+			field6.setV(Double.valueOf(dataQuality.getCompleteAvgInPercent()));
 
 			point.getFields().add(field);
 			point.getFields().add(field2);
 			point.getFields().add(field3);
 			point.getFields().add(field4);
+			point.getFields().add(field5);
+			point.getFields().add(field6);
 
 			Tag tag = new Tag();
 			tag.setK("factsheetId");

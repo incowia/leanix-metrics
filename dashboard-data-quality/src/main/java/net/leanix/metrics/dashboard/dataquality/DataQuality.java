@@ -6,6 +6,7 @@ public final class DataQuality {
 	private String displayName;
 	private int complete;
 	private int incomplete;
+	private double sumPercentIncomplete;
 
 	public String getFactsheetId() {
 		return factsheetId;
@@ -49,6 +50,19 @@ public final class DataQuality {
 
 	public int getIncompleteInPercent() {
 		return 100 - getCompleteInPercent();
+	}
+	
+	public int getAvgPercentIncomplete() {
+		double total = complete + incomplete;
+		return (int) Math.round(((double) sumPercentIncomplete) / total);
+	}
+	
+	public int getCompleteAvgInPercent() {
+		return 100 - getAvgPercentIncomplete();
+	}
+
+	public void setSumPercentIncomplete(double sumPercentIncomplete) {
+		this.sumPercentIncomplete = this.sumPercentIncomplete+sumPercentIncomplete;
 	}
 
 	@Override
