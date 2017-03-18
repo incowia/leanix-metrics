@@ -6,7 +6,7 @@ public final class DataQuality {
 	private String displayName;
 	private int complete;
 	private int incomplete;
-	private double sumPercentIncomplete;
+	private double sumOfComplete;
 
 	public String getFactsheetId() {
 		return factsheetId;
@@ -40,8 +40,12 @@ public final class DataQuality {
 		incomplete++;
 	}
 
+	public void addToSumOfComplete(double add) {
+		sumOfComplete += add;
+	}
+
 	public int getCompleteInPercent() {
-		double total = complete + incomplete;
+		double total = (double) (complete + incomplete);
 		if (complete == 0) {
 			return 0;
 		}
@@ -51,18 +55,14 @@ public final class DataQuality {
 	public int getIncompleteInPercent() {
 		return 100 - getCompleteInPercent();
 	}
-	
-	public int getAvgPercentIncomplete() {
-		double total = complete + incomplete;
-		return (int) Math.round(((double) sumPercentIncomplete) / total);
-	}
-	
-	public int getCompleteAvgInPercent() {
-		return 100 - getAvgPercentIncomplete();
+
+	public int getAvgOfComplete() {
+		double total = (double) (complete + incomplete);
+		return (int) Math.round(sumOfComplete * 100.0d / total);
 	}
 
-	public void setSumPercentIncomplete(double sumPercentIncomplete) {
-		this.sumPercentIncomplete = this.sumPercentIncomplete+sumPercentIncomplete;
+	public int getAvgOfIncomplete() {
+		return 100 - getAvgOfComplete();
 	}
 
 	@Override
@@ -71,7 +71,8 @@ public final class DataQuality {
 		sb.append("factsheetId=").append(factsheetId).append(',');
 		sb.append("displayName=").append(displayName).append(',');
 		sb.append("complete=").append(complete).append(',');
-		sb.append("incomplete=").append(incomplete);
+		sb.append("incomplete=").append(incomplete).append(',');
+		sb.append("sumOfComplete=").append(sumOfComplete);
 		return sb.append(']').toString();
 	}
 }

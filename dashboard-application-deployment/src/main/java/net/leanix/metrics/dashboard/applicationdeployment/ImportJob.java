@@ -51,7 +51,7 @@ public final class ImportJob {
 		List<Service> allServices = servicesApi.getServices(false, null);
 		Map<String, Service> allServicesAsMap = allServices.stream()
 				.collect(Collectors.toMap(Service::getID, Function.identity()));
-		// read business capabilities
+		// read all business capabilities
 		List<BusinessCapability> allBCs = bcApi.getBusinessCapabilities(true, null);
 		Map<String, BusinessCapability> allBCsAsMap = allBCs.stream()
 				.collect(Collectors.toMap(BusinessCapability::getID, Function.identity()));
@@ -59,7 +59,7 @@ public final class ImportJob {
 			AppDeployment appDeploy = new AppDeployment();
 			appDeploy.setFactsheetId(bc.getID());
 			appDeploy.setDisplayName(bc.getDisplayName());
-			// get services of business capabilities
+			// get services of a business capability
 			List<Service> services = getServicesFromBC(bc, allBCsAsMap, allServicesAsMap);
 			services.forEach((s) -> {
 				List<String> tags = s.getTags();

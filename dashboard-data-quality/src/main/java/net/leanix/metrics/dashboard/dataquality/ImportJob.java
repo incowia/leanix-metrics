@@ -51,7 +51,7 @@ public final class ImportJob {
 		List<Service> allServices = servicesApi.getServices(false, null);
 		Map<String, Service> allServicesAsMap = allServices.stream()
 				.collect(Collectors.toMap(Service::getID, Function.identity()));
-		// read business capabilities
+		// read all business capabilities
 		List<BusinessCapability> allBCs = bcApi.getBusinessCapabilities(true, null);
 		Map<String, BusinessCapability> allBCsAsMap = allBCs.stream()
 				.collect(Collectors.toMap(BusinessCapability::getID, Function.identity()));
@@ -59,19 +59,18 @@ public final class ImportJob {
 			DataQuality dataQuality = new DataQuality();
 			dataQuality.setFactsheetId(bc.getID());
 			dataQuality.setDisplayName(bc.getDisplayName());
-			// get services of business capabilities
+			// get services of a business capability
 			List<Service> services = getServicesFromBC(bc, allBCsAsMap, allServicesAsMap);
 			services.forEach((s) -> {
-				String completion = s.getCompletion();
-				double parseCompletion = 1.0d;
+				double completion = 1.0d;
 				try {
-					parseCompletion = Double.parseDouble(completion);
+					completion = Double.parseDouble(s.getCompletion());
 				} catch (Exception e) {
 					// ignore
 				}
-				if (parseCompletion < 1.0d) {
+				dataQuality.addToSumOfComplete(completion);
+				if (completion < 1.0d) {
 					dataQuality.incrementIncomplete();
-					determineAverage(dataQuality,parseCompletion);
 				} else {
 					dataQuality.incrementComplete();
 				}
@@ -105,17 +104,6 @@ public final class ImportJob {
 		}
 		return result;
 	}
-	
-	/**
-	 * determine average of incomplete services
-	 * @param dataQuality
-	 * @param parseCompletion
-	 */
-	private void determineAverage(DataQuality dataQuality, double parseCompletion) {
-		double sumPercentService;
-		sumPercentService = parseCompletion*100;
-		dataQuality.setSumPercentIncomplete(sumPercentService);
-	}
 
 	private void saveMeasurement(List<DataQuality> measurementList) throws net.leanix.dropkit.apiclient.ApiException {
 		PointsApi pointsApi = new PointsApi(metricsClient);
@@ -127,28 +115,28 @@ public final class ImportJob {
 			point.setTime(current);
 
 			Field field = new Field();
-			field.setK("complete");
+			field.setK("complete (count, absolute)");
 			field.setV(Double.valueOf(dataQuality.getComplete()));
 
 			Field field2 = new Field();
-			field2.setK("not complete");
+			field2.setK("not complete (count, absolute)");
 			field2.setV(Double.valueOf(dataQuality.getIncomplete()));
 
 			Field field3 = new Field();
-			field3.setK("complete in %");
+			field3.setK("complete (count, relative)");
 			field3.setV(Double.valueOf(dataQuality.getCompleteInPercent()));
 
 			Field field4 = new Field();
-			field4.setK("not complete in %");
+			field4.setK("not complete (count, relative)");
 			field4.setV(Double.valueOf(dataQuality.getIncompleteInPercent()));
-			
+
 			Field field5 = new Field();
-			field5.setK("not complete avg in %");
-			field5.setV(Double.valueOf(dataQuality.getAvgPercentIncomplete()));
-			
+			field5.setK("complete (average of values)");
+			field5.setV(Double.valueOf(dataQuality.getAvgOfComplete()));
+
 			Field field6 = new Field();
-			field6.setK("complete avg in %");
-			field6.setV(Double.valueOf(dataQuality.getCompleteAvgInPercent()));
+			field6.setK("not complete (average of values)");
+			field6.setV(Double.valueOf(dataQuality.getAvgOfIncomplete()));
 
 			point.getFields().add(field);
 			point.getFields().add(field2);
