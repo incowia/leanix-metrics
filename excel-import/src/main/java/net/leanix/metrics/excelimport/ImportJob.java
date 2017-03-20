@@ -19,11 +19,13 @@ public class ImportJob {
 	public ImportJob(ApiClient metricsClient, String workspaceId, String path, boolean debug) throws NullPointerException {
 		this.metricsClient = Objects.requireNonNull(metricsClient);
 		this.workspaceId = Objects.requireNonNull(workspaceId);
-		this.path = Objects.requireNonNull(workspaceId);
+		this.path = Objects.requireNonNull(path);
 		this.debug = debug;
 	}
 
 	public void run() throws Exception {
+		ReadExcel readExcel = new ReadExcel();
+		readExcel.readExcel(path);
 		List<Measurement> measurementList = getMeasurementList();
 		if (debug) {
 			measurementList.forEach(System.out::println);
