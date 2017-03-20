@@ -41,7 +41,7 @@ public final class AppDeployment {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder('[');
+		StringBuilder sb = new StringBuilder("[");
 		sb.append("factsheetId=").append(factsheetId).append(',');
 		sb.append("displayName=").append(displayName).append(',');
 		sb.append("global=").append(global).append(',');
