@@ -1,8 +1,6 @@
 package net.leanix.metrics.excelimport;
 
 import java.util.List;
-import java.util.Objects;
-import net.leanix.dropkit.apiclient.ApiClient;
 import net.leanix.metrics.excelimport.Measurement;
 
 /**
@@ -11,21 +9,13 @@ import net.leanix.metrics.excelimport.Measurement;
  */
 public class ImportJob {
 	
-	private final ApiClient metricsClient;
-	private final String workspaceId; // for metrics api's
-	private final String path; // for excel sheet
 	private boolean debug;
 	
-	public ImportJob(ApiClient metricsClient, String workspaceId, String path, boolean debug) throws NullPointerException {
-		this.metricsClient = Objects.requireNonNull(metricsClient);
-		this.workspaceId = Objects.requireNonNull(workspaceId);
-		this.path = Objects.requireNonNull(path);
+	public ImportJob(Measurement measurement, boolean debug) throws NullPointerException {
 		this.debug = debug;
 	}
 
 	public void run() throws Exception {
-		ReadExcel readExcel = new ReadExcel();
-		readExcel.readExcel(path);
 		List<Measurement> measurementList = getMeasurementList();
 		if (debug) {
 			measurementList.forEach(System.out::println);

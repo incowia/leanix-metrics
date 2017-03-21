@@ -14,14 +14,8 @@ public class Main {
 	public static final void main(String[] args) {
 		// define cli's
 		Options options = new Options();
-		options.addOption(Option.builder("h").longOpt("host").required().hasArg()
-				.desc("The host, e.g. app.leanix.net (required).").build());
 		options.addOption(Option.builder("p").longOpt("path").required().hasArg()
 				.desc("The path to excel sheet (required).").build());
-		options.addOption(Option.builder("wid").longOpt("workspaceid").required().hasArg()
-				.desc("The leanIX workspace id for metrics (required).").build());
-		options.addOption(
-				Option.builder("t").longOpt("token").required().hasArg().desc("The API token  (required).").build());
 		options.addOption(Option.builder("d").longOpt("debug").desc("Enables the debug mode.").build());
 		options.addOption(Option.builder("?").longOpt("help").desc("Prints this help and returns.").build());
 		CommandLineParser parser = new DefaultParser();
@@ -32,17 +26,16 @@ public class Main {
 			if (args.length == 0 || line.hasOption("help")) {
 				printHelp(formatter, options, 0);
 			}
-			String host = read(line, 'h');
 			String path = read(line, 'p');
-			String workspaceId = read(line, "wid");
-			String token = read(line, 't');
 			boolean debug = line.hasOption('d');
+			Measurement measurement = new Measurement();
+			new ReadExcel().readExcel(path, measurement, debug);
 			// create client
-			net.leanix.dropkit.apiclient.ApiClient metricsClient = new net.leanix.dropkit.apiclient.ApiClientBuilder()
+			/*net.leanix.dropkit.apiclient.ApiClient metricsClient = new net.leanix.dropkit.apiclient.ApiClientBuilder()
 					.withBasePath(String.format("https://%s/services/metrics/v1", host)).withTokenProviderHost(host)
-					.withApiToken(token).withDebugging(debug).build();
+					.withApiToken(token).withDebugging(debug).build();*/
 			// run import
-			new ImportJob(metricsClient, workspaceId, path, debug).run();
+			new ImportJob(measurement, debug).run();
 		} catch (ParseException e) {
 			System.out.println(e.getLocalizedMessage() + "\n");
 			printHelp(formatter, options, -1);
