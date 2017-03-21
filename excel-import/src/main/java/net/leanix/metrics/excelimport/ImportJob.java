@@ -16,11 +16,11 @@ public class ImportJob {
 	}
 
 	public void run() throws Exception {
-		List<Measurement> measurementList = getMeasurementList();
-		if (debug) {
-			measurementList.forEach(System.out::println);
-		}
-		saveMeasurement(measurementList);
+//		List<Measurement> measurementList = getMeasurementList();
+//		if (debug) {
+//			measurementList.forEach(System.out::println);
+//		}
+//		saveMeasurement(measurementList);
 	}
 
 	private List<Measurement> getMeasurementList() {

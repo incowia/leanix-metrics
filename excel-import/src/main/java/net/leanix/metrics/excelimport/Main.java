@@ -48,11 +48,7 @@ public class Main {
 	private static String read(CommandLine line, char opt) {
 		return line.hasOption(opt) ? line.getOptionValue(opt).trim() : null;
 	}
-
-	private static String read(CommandLine line, String opt) {
-		return line.hasOption(opt) ? line.getOptionValue(opt).trim() : null;
-	}
-
+	
 	private static void printHelp(HelpFormatter formatter, Options options, int exitCode) {
 		formatter.printHelp("java -jar excel-import.jar", options, true);
 		System.exit(exitCode);
