@@ -3,7 +3,9 @@ package net.leanix.metrics.excelimport;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -16,8 +18,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public class ReadExcel {
 	
-	public void readExcel(String path, Measurement measurement, boolean debug) throws IOException{
+	public List<Measurement> readExcel(String path, boolean debug) throws IOException{
 		
+		List<Measurement> measurementList = new ArrayList<>();
 		try(FileInputStream file = new FileInputStream(new File(path))){
 			
 			//Get the workbook instance for XLSX file 
@@ -29,12 +32,12 @@ public class ReadExcel {
 				//Get iterator to all the rows in current sheet
 				Iterator<Row> rowIterator = sheet.iterator();
 				
-				int i = 4;
 				while(rowIterator.hasNext()){
 					Row row = rowIterator.next();
 					debug(debug, row);
+					Measurement measurement = new Measurement();
 					//nicht die erste Zeile
-					if(row.getRowNum() > 1){
+					if(row.getRowNum() > 0){
 						measurement.setHost(row.getCell(0).getStringCellValue());
 						measurement.setToken(row.getCell(1).getStringCellValue());
 						measurement.setWorkspaceID(row.getCell(2).getStringCellValue());
@@ -46,17 +49,22 @@ public class ReadExcel {
 					        Cell cell = cellIterator.next();
 					        if (cell.getColumnIndex() > 4) {// To match column index
 					        	String stringCellValue = cell.getStringCellValue();
-					        	if(stringCellValue.equals(Typ.f) == true){
-					        		//is typ field
-					        		measurement.getListOfFields().put(row.getCell(i++).getStringCellValue(), row.getCell(i++).getStringCellValue());
-					        		//is typ tag
+					        	//is typ field
+					        	if(stringCellValue.equals(Typ.f.toString())){
+					        		measurement.getListOfFields().put(row.getCell(cell.getColumnIndex()+1).getStringCellValue(), row.getCell(cell.getColumnIndex()+2).getStringCellValue());
+					        	}
+					        	//is typ tag
+					        	if(stringCellValue.equals(Typ.t.toString())){
+					        		measurement.getListOfTags().put(row.getCell(cell.getColumnIndex()+1).getStringCellValue(), row.getCell(cell.getColumnIndex()+2).getStringCellValue());
 					        	}
 					          }
 					        }
+					    measurementList.add(measurement);
 					}
 				}
 			}
 		}
+		return measurementList;
 	}// end method
 
 	/**

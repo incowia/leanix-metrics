@@ -1,9 +1,7 @@
 package net.leanix.metrics.excelimport;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Measurement {
@@ -65,5 +63,27 @@ public class Measurement {
 
 	public void setListOfFields(Map<String, String> listOfFields) {
 		this.listOfFields = listOfFields;
+	}
+	
+	private Map<String,String>listOfTags = new HashMap<>();
+
+	public Map<String, String> getListOfTags() {
+		return listOfTags;
+	}
+
+	public void setListOfTags(Map<String, String> listOfTags) {
+		this.listOfTags = listOfTags;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("[");
+		sb.append("host=").append(host).append(',');
+		sb.append("token=").append(token).append(',');
+		sb.append("workspaceID=").append(workspaceID).append(',');
+		sb.append("name=").append(name).append(',');
+		sb.append("fields=").append(listOfFields.size()).append(',');
+		sb.append("tags=").append(listOfTags.size());
+		return sb.append(']').toString();
 	}
 }

@@ -28,14 +28,12 @@ public class Main {
 			}
 			String path = read(line, 'p');
 			boolean debug = line.hasOption('d');
-			Measurement measurement = new Measurement();
-			new ReadExcel().readExcel(path, measurement, debug);
 			// create client
 			/*net.leanix.dropkit.apiclient.ApiClient metricsClient = new net.leanix.dropkit.apiclient.ApiClientBuilder()
 					.withBasePath(String.format("https://%s/services/metrics/v1", host)).withTokenProviderHost(host)
 					.withApiToken(token).withDebugging(debug).build();*/
 			// run import
-			new ImportJob(measurement, debug).run();
+			new ImportJob(path, debug).run();
 		} catch (ParseException e) {
 			System.out.println(e.getLocalizedMessage() + "\n");
 			printHelp(formatter, options, -1);
