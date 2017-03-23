@@ -28,7 +28,6 @@ public class Main {
 			}
 			String path = read(line, 'p');
 			boolean debug = line.hasOption('d');
-			//run import
 			new ImportJob(path, debug).run();
 		} catch (ParseException e) {
 			System.out.println(e.getLocalizedMessage() + "\n");
