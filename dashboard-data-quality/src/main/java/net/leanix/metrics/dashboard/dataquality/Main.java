@@ -4,7 +4,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -12,17 +11,13 @@ public final class Main {
 
 	public static final void main(String[] args) {
 		// define cli's
-		Options options = new Options();
-		options.addOption(Option.builder("h").longOpt("host").required().hasArg()
-				.desc("The host, e.g. app.leanix.net (required).").build());
-		options.addOption(Option.builder("w").longOpt("workspace").required().hasArg()
-				.desc("The leanIX workspace (required).").build());
-		options.addOption(Option.builder("wid").longOpt("workspaceid").required().hasArg()
-				.desc("The leanIX workspace id for metrics (required).").build());
-		options.addOption(
-				Option.builder("t").longOpt("token").required().hasArg().desc("The API token  (required).").build());
-		options.addOption(Option.builder("d").longOpt("debug").desc("Enables the debug mode.").build());
-		options.addOption(Option.builder("?").longOpt("help").desc("Prints this help and returns.").build());
+		Options options = new Options()
+				.addRequiredOption("h", "host", true, "The host, e.g. app.leanix.net (required).")
+				.addRequiredOption("w", "workspace", true, "The leanIX workspace (required).")
+				.addRequiredOption("wid", "workspaceid", true, "The leanIX workspace id for metrics (required).")
+				.addRequiredOption("t", "token", true, "The API token  (required).")
+				.addOption("d", "debug", false, "Enables the debug mode.")
+				.addOption("?", "help", false, "Prints this help and returns.");
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		try {
