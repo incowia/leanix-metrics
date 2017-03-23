@@ -52,7 +52,11 @@ public class ReadExcel {
 					        	String stringCellValue = cell.getStringCellValue();
 					        	//is typ field
 					        	if(stringCellValue.equals(Typ.f.toString())){
+<<<<<<< HEAD
 					        		measurement.getListOfFields().put(row.getCell(cell.getColumnIndex()+1).getStringCellValue(), row.getCell(cell.getColumnIndex()+2).getNumericCellValue());
+=======
+					        		measurement.getListOfFields().put(row.getCell(cell.getColumnIndex()+1).getStringCellValue(), row.getCell(cell.getColumnIndex()+2).getStringCellValue());
+>>>>>>> 64bc94a3a9944e10d3f7310638c7ce71ef2de9c2
 					        	}
 					        	//is typ tag
 					        	if(stringCellValue.equals(Typ.t.toString())){
