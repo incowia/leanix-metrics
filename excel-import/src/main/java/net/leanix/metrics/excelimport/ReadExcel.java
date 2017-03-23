@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -47,11 +48,11 @@ public class ReadExcel {
 						Iterator<Cell> cellIterator = row.cellIterator();
 					    while (cellIterator.hasNext()) {
 					        Cell cell = cellIterator.next();
-					        if (cell.getColumnIndex() > 4) {// To match column index
+					        if (cell.getColumnIndex() > 4 && cell.getCellTypeEnum() == CellType.STRING) {// To match column index
 					        	String stringCellValue = cell.getStringCellValue();
 					        	//is typ field
 					        	if(stringCellValue.equals(Typ.f.toString())){
-					        		measurement.getListOfFields().put(row.getCell(cell.getColumnIndex()+1).getStringCellValue(), row.getCell(cell.getColumnIndex()+2).getStringCellValue());
+					        		measurement.getListOfFields().put(row.getCell(cell.getColumnIndex()+1).getStringCellValue(), row.getCell(cell.getColumnIndex()+2).getNumericCellValue());
 					        	}
 					        	//is typ tag
 					        	if(stringCellValue.equals(Typ.t.toString())){

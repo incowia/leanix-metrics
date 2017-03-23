@@ -55,13 +55,13 @@ public class Measurement {
 		this.date = date;
 	}
 	
-	private Map<String,String>listOfFields = new HashMap<>();
+	private Map<String,Double>listOfFields = new HashMap<>();
 
-	public Map<String, String> getListOfFields() {
+	public Map<String, Double> getListOfFields() {
 		return listOfFields;
 	}
 
-	public void setListOfFields(Map<String, String> listOfFields) {
+	public void setListOfFields(Map<String, Double> listOfFields) {
 		this.listOfFields = listOfFields;
 	}
 	
