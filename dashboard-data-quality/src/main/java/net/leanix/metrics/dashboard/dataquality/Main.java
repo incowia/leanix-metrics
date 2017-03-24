@@ -16,6 +16,7 @@ public final class Main {
 				.addRequiredOption("w", "workspace", true, "The leanIX workspace (required).")
 				.addRequiredOption("wid", "workspaceid", true, "The leanIX workspace id for metrics (required).")
 				.addRequiredOption("t", "token", true, "The API token  (required).")
+				.addOption("m", "measurement", true, "Defines the measurement title (default: dashboard-data-quality).")
 				.addOption("d", "debug", false, "Enables the debug mode.")
 				.addOption("?", "help", false, "Prints this help and returns.");
 		CommandLineParser parser = new DefaultParser();
@@ -30,6 +31,10 @@ public final class Main {
 			String workspace = read(line, 'w');
 			String workspaceId = read(line, "wid");
 			String token = read(line, 't');
+			String measurement = read(line, 'm');
+			if (measurement == null || measurement.isEmpty()) {
+				measurement = "dashboard-data-quality";
+			}
 			boolean debug = line.hasOption('d');
 			// create clients
 			net.leanix.api.common.ApiClient apiClient = new net.leanix.api.common.ApiClientBuilder()
@@ -39,7 +44,7 @@ public final class Main {
 					.withBasePath(String.format("https://%s/services/metrics/v1", host)).withTokenProviderHost(host)
 					.withApiToken(token).withDebugging(debug).build();
 			// run import
-			new ImportJob(apiClient, metricsClient, workspaceId, debug).run();
+			new ImportJob(apiClient, metricsClient, workspaceId, measurement, debug).run();
 		} catch (ParseException e) {
 			System.out.println(e.getLocalizedMessage() + "\n");
 			printHelp(formatter, options, -1);

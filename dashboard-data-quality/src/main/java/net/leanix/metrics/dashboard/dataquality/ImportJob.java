@@ -24,14 +24,16 @@ public final class ImportJob {
 
 	private final net.leanix.api.common.ApiClient apiClient;
 	private final net.leanix.dropkit.apiclient.ApiClient metricsClient;
-	private final String workspaceId; // for metrics api's
+	private final String workspaceId;
+	private final String measurement;
 	private final boolean debug;
 
 	public ImportJob(net.leanix.api.common.ApiClient apiClient, net.leanix.dropkit.apiclient.ApiClient metricsClient,
-			String workspaceId, boolean debug) throws NullPointerException {
+			String workspaceId, String measurement, boolean debug) throws NullPointerException {
 		this.apiClient = Objects.requireNonNull(apiClient);
 		this.metricsClient = Objects.requireNonNull(metricsClient);
 		this.workspaceId = Objects.requireNonNull(workspaceId);
+		this.measurement = Objects.requireNonNull(measurement);
 		this.debug = debug;
 	}
 
@@ -110,7 +112,7 @@ public final class ImportJob {
 		Date current = new Date();
 		for (DataQuality dataQuality : measurementList) {
 			Point point = new Point();
-			point.setMeasurement("dashboard-data-quality");
+			point.setMeasurement(measurement);
 			point.setWorkspaceId(workspaceId);
 			point.setTime(current);
 
