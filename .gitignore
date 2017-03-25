@@ -3,6 +3,8 @@
 **/.*/
 !**/.gitignore
 **/*.orig
+**/[Tt]humbs.db
+**/*.DS_Store
 
 ### maven ###
 **/target/
