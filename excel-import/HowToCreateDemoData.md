@@ -22,12 +22,16 @@ TODO
 * ```Points``` (key, case-sensitive, required)
 	* must be placed right after the tags list.
 	* followed by a matrix of point data (values, partially required) in the next columns
-		* the first column must be ```Time``` and each value must contain a valid date (time, time zone etc. are optional)
+		* the first column must be ```Time```
+			* each value must contain a valid date (time, time zone etc. are optional)
+			* values are required
 		* the next columns are defined by the tags list
 			* each element defines a column (order is defined by the list)
 			* if a tags list is defined, then these columns are required
 			* values are optional
-		* all following columns will be interpreted as point fields, values are optional
+		* all following columns will be interpreted as point fields
+			* the title of each column will be used as point field key (as it is)
+			* values are optional
 
 ## Examples
 
