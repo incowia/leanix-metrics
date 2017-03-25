@@ -35,7 +35,7 @@ All examples are valid.
 
 ### w/o points (minimal content w/o tags)
 
- #  |  A  |  B
+\#  |  A  |  B
 --- | --- | ---
   1 | Measurement | MyMeasurement
   2 | Tags
@@ -43,7 +43,7 @@ All examples are valid.
 
 ### w/o points (minimal content w/ tags)
 
- #  |  A  |  B  |  C  |  D
+\#  |  A  |  B  |  C  |  D
 --- | --- | --- | --- | ---
   1 | Measurement | MyMeasurement2
   2 | Tags | tag1
@@ -52,7 +52,7 @@ All examples are valid.
 
 ### w/ points (content w/o tags)
 
- #  |  A  |  B  |  C  |  D
+\#  |  A  |  B  |  C  |  D
 --- | --- | --- | --- | ---
   1 | Measurement | MyMeasurement3
   2 | Tags
@@ -62,7 +62,7 @@ All examples are valid.
 
 ### w/ points (content w/ tags)
 
- #  |  A  |  B  |  C  |  D  |  E  |  F
+\#  |  A  |  B  |  C  |  D  |  E  |  F
 --- | --- | --- | --- | --- | --- | ---
   1 | Measurement | app-data-quality-per-businesscap
   2 | Tags | factsheetId
@@ -76,17 +76,3 @@ All examples are valid.
  10 | | 02.01.2017 01:00 | 100200301 | MyBusinessCap2 | 1 | 2
  11 | | 02.01.2017 01:00 | 100200302 | MyBusinessCap3 | 5 | 1
  12 | | 02.01.2017 01:00 | 100200303 | MyBusinessCap4 | 2 | 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
