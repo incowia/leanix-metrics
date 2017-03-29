@@ -45,10 +45,10 @@ public final class DataQuality {
 	}
 
 	public int getCompleteInPercent() {
-		double total = (double) (complete + incomplete);
 		if (complete == 0) {
 			return 0;
 		}
+		double total = (double) (complete + incomplete);
 		return (int) Math.round(((double) complete) * 100.0d / total);
 	}
 
@@ -57,8 +57,11 @@ public final class DataQuality {
 	}
 
 	public int getAvgOfComplete() {
-		double total = (double) (complete + incomplete);
-		return (int) Math.round(sumOfComplete * 100.0d / total);
+		int total = complete + incomplete;
+		if (total == 0 || sumOfComplete == 0.0d) {
+			return 0;
+		}
+		return (int) Math.round(sumOfComplete * 100.0d / ((double) total));
 	}
 
 	public int getAvgOfIncomplete() {

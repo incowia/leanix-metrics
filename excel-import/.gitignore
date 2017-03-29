@@ -1,5 +1,6 @@
 ### excel files ###
 **/*.tmp
 **/*.xls*
-**/*.xlk
+**/*.xlk*
+**/*.xlt*
 **/*.*lock.*
