@@ -33,13 +33,15 @@ public class ImportJob {
 	private final String workspaceId;
 	private final String path;
 	private final boolean debug;
+	private final boolean dryRun;
 
 	public ImportJob(net.leanix.dropkit.apiclient.ApiClient metricsClient, String workspaceId, String path,
-			boolean debug) throws NullPointerException {
+			boolean debug, boolean dryRun) throws NullPointerException {
 		this.metricsClient = Objects.requireNonNull(metricsClient);
 		this.workspaceId = Objects.requireNonNull(workspaceId);
 		this.path = Objects.requireNonNull(path);
 		this.debug = debug;
+		this.dryRun = dryRun;
 	}
 
 	public void run() throws Exception {
@@ -47,12 +49,24 @@ public class ImportJob {
 		if (debug) {
 			measurements.forEach((measurement, points) -> points.forEach(System.out::println));
 		}
-		saveMeasurements(measurements);
+		if (!dryRun) {
+			if (debug) {
+				System.out.println("Sending points ...");
+			}
+			saveMeasurements(measurements);
+		}
 	}
 
 	private Map<String, List<Point>> getMeasurements()
 			throws IOException, InvalidOperationException, InvalidFormatException {
-		try (FileInputStream stream = new FileInputStream(new File(path))) {
+		if (debug) {
+			System.out.println("Try to read file from " + path);
+		}
+		File file = new File(path);
+		if (debug) {
+			System.out.println("Absolute path is " + file.getAbsolutePath());
+		}
+		try (FileInputStream stream = new FileInputStream(file)) {
 			try (Workbook wb = getWorkbook(path, stream)) {
 				Map<String, List<Point>> measurements = new LinkedHashMap<>();
 				if (wb.isHidden()) {
@@ -70,17 +84,15 @@ public class ImportJob {
 					List<Point> points = new ArrayList<>();
 					measurements.put(measurement, points);
 					// extract data
-					List<String> headers = getHeaders(sheet);
-					if (headers.size() < 2) {
+					Data data = getData(sheet);
+					if (data.headers.size() < 2) {
 						// no tag or field keys defined (also exclude minimal
 						// valid content)
 						continue;
 					}
-					List<Boolean> tagMarkers = getTagMarkers(sheet);
-					List<List<Object>> pointsData = getPointsData(sheet, headers.size());
 					// create the points
-					for (int j = 0, len2 = pointsData.size(); j < len2; j++) {
-						List<Object> pointData = pointsData.get(j);
+					for (int j = 0, len2 = data.pointsData.size(); j < len2; j++) {
+						List<Object> pointData = data.pointsData.get(j);
 						Point point = new Point();
 						points.add(point);
 						point.setWorkspaceId(workspaceId);
@@ -89,12 +101,8 @@ public class ImportJob {
 						point.setTime((Date) pointData.get(0));
 						// all others are tags or fields
 						for (int k = 1, len3 = pointData.size(); k < len3; k++) {
-							String header = headers.get(k);
-							if (header == null) {
-								// excluded column
-								continue;
-							}
-							if (tagMarkers.get(k)) {
+							String header = data.headers.get(k);
+							if (data.tagMarkers.get(k)) {
 								// it's a tag
 								Tag tag = new Tag();
 								tag.setK(header);
@@ -107,7 +115,7 @@ public class ImportJob {
 								Object value = pointData.get(k);
 								if (value instanceof Double) {
 									field.setV((Double) value);
-								} else {
+								} else if (value != null) {
 									field.setS(toString(value));
 								}
 								point.getFields().add(field);
@@ -129,134 +137,140 @@ public class ImportJob {
 		return obj.toString();
 	}
 
-	@SuppressWarnings({ "incomplete-switch", "deprecation" })
-	private static List<List<Object>> getPointsData(Sheet sheet, int columnSizeThreshold) {
-		List<List<Object>> result = new ArrayList<>();
-		List<Row> rows = new ArrayList<>();
-		int skippedRows = 0;
-		for (Row row : sheet) {
-			if (!isRowApplicable(row)) {
-				continue;
+	private static Data getData(Sheet sheet) throws InvalidFormatException {
+		Data data = new Data();
+		// get all applicable rows
+		final List<Row> rows = new ArrayList<>();
+		sheet.forEach((row) -> {
+			if (isRowApplicable(row)) {
+				rows.add(row);
 			}
-			if (skippedRows < 2) {
-				skippedRows++;
-				continue;
-			}
-			rows.add(row);
-		}
-		for (Row row : rows) {
-			List<Object> cells = new ArrayList<>();
-			result.add(cells);
-			for (Cell cell : row) {
-				if (cells.size() == columnSizeThreshold) {
-					break;
-				}
-				if (!isCellApplicable(cell)) {
-					continue;
-				}
-				Object value = null;
-				if (DateUtil.isCellDateFormatted(cell)) {
-					value = cell.getDateCellValue();
-				} else {
-					switch (cell.getCellTypeEnum()) {
-					case NUMERIC:
-						value = Double.valueOf(cell.getNumericCellValue());
-						break;
-					case STRING:
-						value = cell.getStringCellValue();
-						break;
-					case FORMULA:
-						switch (cell.getCachedFormulaResultTypeEnum()) {
-						case NUMERIC:
-							value = Double.valueOf(cell.getNumericCellValue());
-							break;
-						case STRING:
-							value = cell.getStringCellValue();
-							break;
-						case BOOLEAN:
-							value = Boolean.valueOf(cell.getBooleanCellValue());
-							break;
-						case ERROR:
-							// exclude the cell
-							break;
-						}
-						break;
-					case BOOLEAN:
-						value = Boolean.valueOf(cell.getBooleanCellValue());
-						break;
-					case BLANK:
-					case ERROR:
-						// exclude the cells
-						break;
-					}
-				}
-				cells.add(value);
-			}
-		}
-		return result;
-	}
-
-	private static List<Boolean> getTagMarkers(Sheet sheet) {
-		List<Boolean> result = new ArrayList<>();
-		Row tagsRow = null;
-		boolean skippedFirstRow = false;
-		for (Row row : sheet) {
-			if (!isRowApplicable(row)) {
-				continue;
-			}
-			if (!skippedFirstRow) {
-				skippedFirstRow = true;
-				continue;
-			}
-			tagsRow = row;
-			break;
-		}
+		});
 		// just to be sure
-		if (tagsRow == null) {
-			return result;
+		if (rows.size() < 3) {
+			// no data
+			return data;
 		}
-		for (Cell cell : tagsRow) {
-			if (!isCellApplicable(cell)) {
-				continue;
-			}
-			String marker = cell.getStringCellValue();
-			if (marker == null || (marker = marker.trim()).isEmpty()) {
-				result.add(Boolean.FALSE);
-			} else {
-				result.add(Boolean.TRUE);
-			}
-		}
-		// first is always for 'Time' column, so set to false
-		result.set(0, Boolean.FALSE);
-		return result;
-	}
-
-	private static List<String> getHeaders(Sheet sheet) {
-		List<String> result = new ArrayList<>();
-		Row headerRow = null;
-		for (Row row : sheet) {
-			if (!isRowApplicable(row)) {
-				continue;
-			}
-			headerRow = row;
-			break;
-		}
-		// just to be sure
-		if (headerRow == null) {
-			return result;
-		}
-		for (Cell cell : headerRow) {
+		Row headersRow = rows.get(0);
+		Row tagsRow = rows.get(1);
+		List<Row> dataRows = rows.subList(2, rows.size());
+		List<Integer> includedColumns = new ArrayList<>();
+		// get the headers
+		for (Cell cell : headersRow) {
 			if (!isCellApplicable(cell)) {
 				continue;
 			}
 			String header = cell.getStringCellValue();
 			if (header != null && !(header = header.trim()).isEmpty()) {
-				result.add(header);
-			} else {
-				result.add(null);
+				data.headers.add(header);
+				includedColumns.add(Integer.valueOf(cell.getColumnIndex()));
 			}
 		}
-		return result;
+		// header has no data? (at least the 'Time' column is present)
+		if (data.headers.size() < 2) {
+			return data;
+		}
+		// get the tag markers
+		int eciIndex = 0;
+		for (Cell cell : tagsRow) {
+			// threshold reached?
+			if (data.tagMarkers.size() == data.headers.size()) {
+				break;
+			}
+			if (!isCellApplicable(cell)) {
+				continue;
+			}
+			// must be included?
+			if (!includedColumns.contains(Integer.valueOf(cell.getColumnIndex()))) {
+				continue;
+			}
+			// sanity check if cell has the expected column index (sometimes
+			// excel mess up these indices)
+			int expectedColumnIndex = includedColumns.get(eciIndex++);
+			if (expectedColumnIndex != cell.getColumnIndex()) {
+				throw new InvalidFormatException("While reading the excel file, a column index jump occured."
+						+ " This is most likely caused by an empty or wrong formatted cell in the points data area."
+						+ " Please check and save again.");
+			}
+			String marker = cell.getStringCellValue();
+			if (marker == null || (marker = marker.trim()).isEmpty()) {
+				data.tagMarkers.add(Boolean.FALSE);
+			} else {
+				data.tagMarkers.add(Boolean.TRUE);
+			}
+		}
+		// first is always for 'Time' column, so set to false
+		data.tagMarkers.set(0, Boolean.FALSE);
+		// get the points data
+		for (Row row : dataRows) {
+			List<Object> rowValues = new ArrayList<>();
+			data.pointsData.add(rowValues);
+			eciIndex = 0; // reset
+			for (Cell cell : row) {
+				// threshold reached?
+				if (rowValues.size() == data.headers.size()) {
+					break;
+				}
+				if (!isCellApplicable(cell)) {
+					continue;
+				}
+				// must be included?
+				if (!includedColumns.contains(Integer.valueOf(cell.getColumnIndex()))) {
+					continue;
+				}
+				// sanity check if cell has the expected column index (sometimes
+				// excel mess up these indices)
+				int expectedColumnIndex = includedColumns.get(eciIndex++);
+				if (expectedColumnIndex != cell.getColumnIndex()) {
+					throw new InvalidFormatException("While reading the excel file, a column index jump occured."
+							+ " This is most likely caused by an empty or wrong formatted cell in the points data area."
+							+ " Please check and save again.");
+				}
+				rowValues.add(getCellValue(cell));
+			}
+		}
+		return data;
+	}
+
+	@SuppressWarnings("deprecation")
+	private static Object getCellValue(Cell cell) throws InvalidFormatException {
+		switch (cell.getCellTypeEnum()) {
+		case NUMERIC:
+			if (DateUtil.isCellDateFormatted(cell)) {
+				return cell.getDateCellValue();
+			}
+			return Double.valueOf(cell.getNumericCellValue());
+		case STRING:
+			return cell.getStringCellValue();
+		case FORMULA:
+			switch (cell.getCachedFormulaResultTypeEnum()) {
+			case NUMERIC:
+				if (DateUtil.isCellDateFormatted(cell)) {
+					return cell.getDateCellValue();
+				}
+				return Double.valueOf(cell.getNumericCellValue());
+			case STRING:
+				return cell.getStringCellValue();
+			case BOOLEAN:
+				return Boolean.valueOf(cell.getBooleanCellValue());
+			case ERROR:
+			default:
+				throw notSupportedCellType(cell, true);
+			}
+		case BOOLEAN:
+			return Boolean.valueOf(cell.getBooleanCellValue());
+		case BLANK:
+		case ERROR:
+		default:
+			throw notSupportedCellType(cell, false);
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	private static InvalidFormatException notSupportedCellType(Cell cell, boolean formula) {
+		return new InvalidFormatException("Cell type of " + cell.getCellTypeEnum() + (formula ? " (FORMULA)" : "")
+				+ " is not supported (row: " + cell.getRowIndex() + ", column: " + cell.getColumnIndex()
+				+ ", 0-based indices, sheet: " + cell.getSheet().getSheetName() + ").");
 	}
 
 	private static boolean isRowApplicable(Row row) {
@@ -371,5 +385,12 @@ public class ImportJob {
 				pointsApi.createPoint(p);
 			}
 		}
+	}
+
+	private static class Data {
+
+		private List<String> headers = new ArrayList<>();
+		private List<Boolean> tagMarkers = new ArrayList<>();
+		private List<List<Object>> pointsData = new ArrayList<>();
 	}
 }

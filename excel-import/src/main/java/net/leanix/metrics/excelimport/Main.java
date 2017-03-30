@@ -16,6 +16,7 @@ public class Main {
 				.addRequiredOption("t", "token", true, "The API token  (required).")
 				.addRequiredOption("p", "path", true, "The path to excel sheet (required).")
 				.addOption("d", "debug", false, "Enables the debug mode.")
+				.addOption("dr", "dryRun", false, "Enables the dryRun mode (read files only).")
 				.addOption("?", "help", false, "Prints this help and returns.");
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
@@ -30,11 +31,12 @@ public class Main {
 			String token = read(line, 't');
 			String path = read(line, 'p');
 			boolean debug = line.hasOption('d');
+			boolean dryRun = line.hasOption("dr");
 			// create clients
 			net.leanix.dropkit.apiclient.ApiClient metricsClient = new net.leanix.dropkit.apiclient.ApiClientBuilder()
 					.withBasePath(String.format("https://%s/services/metrics/v1", host)).withTokenProviderHost(host)
 					.withApiToken(token).withDebugging(debug).build();
-			new ImportJob(metricsClient, workspaceId, path, debug).run();
+			new ImportJob(metricsClient, workspaceId, path, debug, dryRun).run();
 		} catch (ParseException e) {
 			System.out.println(e.getLocalizedMessage() + "\n");
 			printHelp(formatter, options, -1);
