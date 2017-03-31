@@ -47,7 +47,40 @@ public class ImportJob {
 	public void run() throws Exception {
 		Map<String, List<Point>> measurements = getMeasurements();
 		if (debug) {
-			measurements.forEach((measurement, points) -> points.forEach(System.out::println));
+			measurements.forEach((measurement, points) -> {
+				if (points.isEmpty()) {
+					return;
+				}
+				System.out.println("measurement:" + measurement);
+				StringBuilder sb = new StringBuilder("\tpoints[");
+				points.forEach((point) -> {
+					sb.append("point(workspaceId:").append(point.getWorkspaceId());
+					sb.append(";time:").append(point.getTime());
+					if (!point.getTags().isEmpty()) {
+						sb.append(";tags[");
+						point.getTags().forEach((tag) -> {
+							sb.append("tag(key:").append(tag.getK());
+							sb.append(";value:").append(tag.getV()).append("),");
+						});
+						sb.deleteCharAt(sb.length() - 1).append("]");
+					}
+					if (!point.getFields().isEmpty()) {
+						sb.append(";fields[");
+						point.getFields().forEach((field) -> {
+							sb.append("field(key:").append(field.getK());
+							if (field.getV() != null) {
+								sb.append(";value-double:").append(field.getV()).append("),");
+							} else {
+								sb.append(";value-string:").append(field.getS()).append("),");
+							}
+						});
+						sb.deleteCharAt(sb.length() - 1).append("]");
+					}
+					sb.append("),");
+				});
+				sb.deleteCharAt(sb.length() - 1).append("]");
+				System.out.println(sb.toString());
+			});
 		}
 		if (!dryRun) {
 			if (debug) {
@@ -162,6 +195,8 @@ public class ImportJob {
 			}
 			String header = cell.getStringCellValue();
 			if (header != null && !(header = header.trim()).isEmpty()) {
+				// normalize string
+				header = header.replace("\n", " ");
 				data.headers.add(header);
 				includedColumns.add(Integer.valueOf(cell.getColumnIndex()));
 			}
@@ -185,7 +220,7 @@ public class ImportJob {
 				continue;
 			}
 			// sanity check if cell has the expected column index (sometimes
-			// excel mess up these indices)
+			// excel messes things up)
 			int expectedColumnIndex = includedColumns.get(eciIndex++);
 			if (expectedColumnIndex != cell.getColumnIndex()) {
 				throw new InvalidFormatException("While reading the excel file, a column index jump occured."
@@ -219,14 +254,21 @@ public class ImportJob {
 					continue;
 				}
 				// sanity check if cell has the expected column index (sometimes
-				// excel mess up these indices)
+				// excel messes things up)
 				int expectedColumnIndex = includedColumns.get(eciIndex++);
 				if (expectedColumnIndex != cell.getColumnIndex()) {
 					throw new InvalidFormatException("While reading the excel file, a column index jump occured."
 							+ " This is most likely caused by an empty or wrong formatted cell in the points data area."
 							+ " Please check and save again.");
 				}
-				rowValues.add(getCellValue(cell));
+				Object value = getCellValue(cell);
+				// sanity check
+				if (value == null || (value instanceof String && value.toString().isEmpty())) {
+					throw new InvalidFormatException("BLANK or empty cells are not supported (row: "
+							+ cell.getRowIndex() + ", column: " + cell.getColumnIndex() + ", 0-based indices, sheet: "
+							+ cell.getSheet().getSheetName() + ").");
+				}
+				rowValues.add(value);
 			}
 		}
 		return data;
@@ -278,7 +320,7 @@ public class ImportJob {
 				&& (row.getRowStyle() != null ? !row.getRowStyle().getHidden() : true);
 	}
 
-	private static boolean isSheetApplicable(Sheet sheet) {
+	private static boolean isSheetApplicable(Sheet sheet) throws InvalidFormatException {
 		/*
 		 * sheet must contain at least 2 rows, at least 1 column, at least a
 		 * 'Time' column as first column, a 'Tags' row as second row, size must
@@ -312,8 +354,11 @@ public class ImportJob {
 					return false;
 				}
 				Cell firstCell = getFirstCell(row);
-				if (firstCell == null || !DateUtil.isCellDateFormatted(firstCell)
-						|| firstCell.getDateCellValue() == null) {
+				if (firstCell == null) {
+					return false;
+				}
+				Object value = getCellValue(firstCell);
+				if (!(value instanceof Date)) {
 					return false;
 				}
 			}

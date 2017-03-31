@@ -11,15 +11,15 @@
 * Excel 97 - 2003 (*.xls)
 * *.xlsx
 
-Values in the points data area can contain excel functions (excel usually stores pre-computed values by default, if disabled please make sure to trigger a computation before saving the file), but makros are not supported. It's possible to hide entire rows and/or columns, but not individual cells. Please avoid any special filter, sorting etc. You can check the compatibility of an excel file by using the ```-dryRun -debug``` cli options. This will output the parsed content as metrics points, which can be analyzed.
+Values in the points data area can contain excel functions (excel usually stores pre-computed values by default, if disabled please make sure to trigger a computation before saving the file), but macros are not supported. It's possible to hide entire rows and/or columns, but not individual cells. Please avoid any special filter, sorting etc. You can check the compatibility of an excel file by using the ```-dryRun -debug``` cli options. This will output the parsed content as metrics points, which can be analyzed.
 
 ## Content
 
 * every excel file can contain multiple measurements, one per sheet
 * the name of a measurement is the sheet name
 * the content of a sheet is considered applicable if
-	* the first cell in the first visible row has ```Time``` as content
-	* the first cell in the second visible row has ```Tags``` as content
+	* the first cell in the first visible row has ```Time``` as content (case-sensitive)
+	* the first cell in the second visible row has ```Tags``` as content (case-sensitive)
 	* all values of the ```Time``` must contain a valid date (e.g. dd.mm.yyyy, time, time zone etc. are optional), except for the ```Tags``` row
 * the next visible row after the ```Tags``` row marks the beginning of the point data area
 * every column after the ```Time``` column will be interpreted as tag or field column, if a header is present (columns can be excluded via hiding or marked as excluded by a blank header cell)
