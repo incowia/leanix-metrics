@@ -371,7 +371,7 @@ public class ImportJob {
 				&& isCellContentApplicable(getFirstCell(secondRow), "Tags");
 	}
 
-	private static Cell getFirstCell(Row row) {
+	private static Cell getFirstCell(Row row) throws InvalidFormatException {
 		// short hand: try firstCellNum
 		Cell firstCell = row.getCell(row.getFirstCellNum());
 		if (isCellApplicable(firstCell)) {
@@ -386,17 +386,21 @@ public class ImportJob {
 		return null;
 	}
 
-	private static boolean isCellApplicable(Cell cell) {
+	private static boolean isCellApplicable(Cell cell) throws InvalidFormatException {
 		if (cell == null) {
 			return false;
 		}
 		if (cell.getSheet().isColumnHidden(cell.getColumnIndex())) {
 			return false;
 		}
-		return !cell.getCellStyle().getHidden();
+		if (cell.getCellStyle() != null && cell.getCellStyle().getHidden()) {
+			throw new InvalidFormatException("Hidden cells are not supported (row: " + cell.getRowIndex() + ", column: "
+					+ cell.getColumnIndex() + ", 0-based indices, sheet: " + cell.getSheet().getSheetName() + ").");
+		}
+		return true;
 	}
 
-	private static boolean isCellContentApplicable(Cell cell, String content) {
+	private static boolean isCellContentApplicable(Cell cell, String content) throws InvalidFormatException {
 		if (!isCellApplicable(cell)) {
 			return false;
 		}
