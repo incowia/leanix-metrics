@@ -1,1 +1,3 @@
 # leanix-metrics
+
+[leanIX](https://www.leanix.net/) has the ability to store time-series based data from various sources so that it can be included in reports and linked to factsheets. This repository contains a collection of projects that use the [leanIX metrics api](https://dev.leanix.net/docs/api-overview) to store the data. Each project implements a console-like application for a specific use case.
