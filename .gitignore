@@ -93,6 +93,7 @@
 **/luej.pkh
 
 ### NodeJS, npm & bower ###
+**/package-lock.json
 **/logs
 **/*.log
 **/npm-debug.log*
